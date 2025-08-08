@@ -34,7 +34,13 @@ const items = ref<ScheduleItem[]>(loadFromStorage())
 watch(items, (val) => persist(val), { deep: true })
 
 export function useSchedule() {
+  function hasOverlap(candidate: Omit<ScheduleItem,'id'>, ignoreId?: string) {
+    const cStart = candidate.start
+    const cEnd = candidate.end
+    return items.value.some(ev => ev.date === candidate.date && ev.id !== ignoreId && !(cEnd <= ev.start || cStart >= ev.end))
+  }
   const addItem = (item: Omit<ScheduleItem, 'id'>) => {
+    if (hasOverlap(item)) throw new Error('Conflito de horário')
     items.value.push({ ...item, id: crypto.randomUUID() })
   }
   const updateItem = (id: string, patch: Partial<ScheduleItem>) => {
@@ -50,6 +56,7 @@ export function useSchedule() {
         end: patch.end ?? current.end,
         color: patch.color ?? current.color
       }
+      if (hasOverlap(next, id)) throw new Error('Conflito de horário')
       items.value[idx] = next
     }
   }

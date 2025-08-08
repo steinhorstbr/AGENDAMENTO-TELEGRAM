@@ -12,6 +12,7 @@
         class="ml-auto inline-flex items-center gap-1 rounded-md bg-indigo-600 text-white text-sm font-medium px-3 py-1.5 shadow hover:bg-indigo-500 active:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-1"
         type="button"
         aria-label="Adicionar agendamento"
+        @click="emit('add')"
       >
         + <span class="hidden sm:inline">Agendar</span>
       </button>
@@ -37,7 +38,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-const emit = defineEmits<{(e: 'change', value: Date): void}>()
+const emit = defineEmits<{(e: 'change', value: Date): void; (e: 'add'): void}>()
 const props = defineProps<{ baseDate: Date }>()
 
 const startOfWeek = computed(() => {
