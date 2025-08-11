@@ -2,6 +2,7 @@ import { ref, computed } from 'vue'
 
 export interface ScheduleItem {
   id: string
+  code: string // Código hexadecimal de 4 dígitos
   title: string
   description?: string
   date: string // ISO date (yyyy-mm-dd)
@@ -9,10 +10,22 @@ export interface ScheduleItem {
   end: string   // HH:MM (24h)
   color?: string
   googleMapsLink?: string
+  rescheduled_reason?: string // Motivo do reagendamento
+  is_completed?: boolean | number // Se foi finalizada (boolean no frontend, integer no banco)
 }
 
 const items = ref<ScheduleItem[]>([])
 const isLoading = ref(false)
+
+// Função para gerar código hexadecimal único de 4 dígitos
+function generateUniqueCode(): string {
+  const chars = '0123456789ABCDEF'
+  let code = ''
+  for (let i = 0; i < 4; i++) {
+    code += chars[Math.floor(Math.random() * 16)]
+  }
+  return code
+}
 
 export function useSchedule() {
   const loadItems = async () => {
@@ -28,11 +41,14 @@ export function useSchedule() {
     }
   }
 
-  const addItem = async (item: Omit<ScheduleItem, 'id'>) => {
+  const addItem = async (item: Omit<ScheduleItem, 'id' | 'code'>) => {
     try {
       const newItem = await $fetch<ScheduleItem>('/api/schedule', {
         method: 'POST',
-        body: item
+        body: {
+          ...item,
+          code: generateUniqueCode()
+        }
       })
       items.value.push(newItem)
       return newItem
