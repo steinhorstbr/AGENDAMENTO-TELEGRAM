@@ -1,18 +1,57 @@
 {
-  "name": "nuxt-app",
+  "name": "agenda-bjj",
   "type": "module",
   "private": true,
+  "description": "Sistema de agendamento com notificações do Telegram para academias de BJJ",
+  "version": "1.0.0",
+  "keywords": ["nuxt", "vue", "telegram", "schedule", "bjj", "typescript"],
+  "author": "Agenda BJJ Team",
   "scripts": {
     "build": "nuxt build",
-    "dev": "nuxt dev",
+    "dev": "nuxt dev --host 0.0.0.0",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "lint": "eslint . --ext .vue,.js,.ts --max-warnings 0",
+    "lint:fix": "eslint . --ext .vue,.js,.ts --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "type-check": "nuxi typecheck",
+    "clean": "rm -rf .nuxt .output dist node_modules/.cache",
+    "docker:build": "docker build -t agenda-bjj .",
+    "docker:dev": "docker-compose --profile dev up -d",
+    "docker:prod": "docker-compose up -d",
+    "docker:stop": "docker-compose down",
+    "docker:logs": "docker-compose logs -f agenda-bjj"
   },
   "dependencies": {
     "@nuxtjs/tailwindcss": "^6.14.0",
+    "@tailwindcss/forms": "^0.5.7",
+    "@tailwindcss/typography": "^0.5.10",
+    "better-sqlite3": "^9.2.2",
+    "node-cron": "^3.0.3",
+    "node-telegram-bot-api": "^0.66.0",
     "nuxt": "^4.0.1",
     "vue": "^3.5.18",
     "vue-router": "^4.5.1"
+  },
+  "devDependencies": {
+    "@nuxtjs/eslint-config-typescript": "^12.1.0",
+    "@types/better-sqlite3": "^7.6.8",
+    "@types/node": "^20.11.0",
+    "@types/node-cron": "^3.0.11",
+    "@types/node-telegram-bot-api": "^0.64.7",
+    "@typescript-eslint/eslint-plugin": "^6.19.0",
+    "@typescript-eslint/parser": "^6.19.0",
+    "@vue/eslint-config-typescript": "^12.0.0",
+    "eslint": "^8.56.0",
+    "eslint-plugin-nuxt": "^4.0.0",
+    "eslint-plugin-vue": "^9.20.1",
+    "prettier": "^3.2.4",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
   }
 }

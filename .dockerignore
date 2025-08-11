@@ -51,7 +51,8 @@ temp/
 Thumbs.db
 ehthumbs.db
 
-# Package manager files
+# Package manager files (não usamos package-lock.json)
+package-lock.json
 yarn.lock
 pnpm-lock.yaml
 

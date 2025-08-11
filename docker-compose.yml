@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  agenda-bjj:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: agenda-bjj
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-6307490274:AAGx5q-tQAP-HeAUGbAOo4XVJSlbtLCkpEA}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID:--4505537919}
+      - TZ=America/Sao_Paulo
+    volumes:
+      # Volume persistente para o banco de dados
+      - agenda_data:/app/data
+      # Volume para logs (opcional)
+      - agenda_logs:/app/logs
+    networks:
+      - agenda_network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Serviço opcional para desenvolvimento
+  agenda-bjj-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: agenda-bjj-dev
+    profiles: ["dev"]
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    environment:
+      - NODE_ENV=development
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-6307490274:AAGx5q-tQAP-HeAUGbAOo4XVJSlbtLCkpEA}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID:--4505537919}
+      - TZ=America/Sao_Paulo
+    volumes:
+      # Bind mount do código para hot reload
+      - .:/app
+      - /app/node_modules
+      # Volume para dados de desenvolvimento
+      - agenda_data_dev:/app/data
+    networks:
+      - agenda_network
+
+volumes:
+  agenda_data:
+    driver: local
+  agenda_logs:
+    driver: local
+  agenda_data_dev:
+    driver: local
+
+networks:
+  agenda_network:
+    driver: bridge
