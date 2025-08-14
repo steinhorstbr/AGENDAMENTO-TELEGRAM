@@ -1,0 +1,336 @@
+<template>
+  <Teleport to="body">
+    <transition name="fade">
+      <div v-if="open" class="fixed inset-0 z-50 flex items-start justify-center p-4 sm:p-8">
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="close" />
+        <div class="relative bg-white w-full max-w-lg rounded-lg shadow-lg ring-1 ring-black/10 flex flex-col overflow-hidden max-h-[90vh]">
+          <div class="px-5 py-4 border-b flex items-center justify-between">
+            <h3 class="text-base font-semibold text-gray-800">{{ isEdit ? 'Editar' : 'Nova' }} Tarefa</h3>
+            <button class="p-1 rounded hover:bg-gray-100" @click="close" aria-label="Fechar">✕</button>
+          </div>
+          
+          <form class="p-5 space-y-4 overflow-y-auto flex-1" @submit.prevent="handleSubmit">
+            <!-- Código da tarefa (somente visualização para edição) -->
+            <div v-if="isEdit && form.code" class="bg-gray-50 rounded-md p-3 border">
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                🔢 Código da Tarefa
+              </label>
+              <div class="flex items-center gap-2">
+                <span class="font-mono bg-indigo-100 text-indigo-800 px-2 py-1 rounded text-sm font-semibold">{{ form.code }}</span>
+                <span class="text-xs text-gray-500">Para comandos do Telegram</span>
+              </div>
+            </div>
+
+            <!-- Categoria -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                🏷️ Categoria*
+              </label>
+              <select
+                v-model="form.category_id"
+                required
+                class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition"
+              >
+                <option value="">Selecione uma categoria</option>
+                <option
+                  v-for="category in categories"
+                  :key="category.id"
+                  :value="category.id"
+                >
+                  {{ category.icon }} {{ category.name }}
+                </option>
+              </select>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4">
+              <label class="flex flex-col gap-1 text-sm font-medium text-gray-700">
+                Título*
+                <input 
+                  v-model="form.title" 
+                  required 
+                  class="rounded-md border border-gray-300 bg-white px-2.5 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition" 
+                  type="text" 
+                  placeholder="Ex: Aula BJJ Kids" 
+                />
+              </label>
+              
+              <label class="flex flex-col gap-1 text-sm font-medium text-gray-700">
+                Descrição
+                <textarea 
+                  v-model="form.description" 
+                  rows="2" 
+                  class="rounded-md border border-gray-300 bg-white px-2.5 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition resize-none" 
+                  placeholder="Detalhes da tarefa (opcional)" 
+                />
+              </label>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+              <label class="flex flex-col gap-1 text-sm font-medium text-gray-700">
+                Data*
+                <input 
+                  v-model="form.date" 
+                  required 
+                  class="rounded-md border border-gray-300 bg-white px-2.5 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition" 
+                  type="date" 
+                />
+              </label>
+              
+              <label class="flex flex-col gap-1 text-sm font-medium text-gray-700">
+                Cor da Categoria
+                <div class="flex items-center gap-2">
+                  <div 
+                    class="w-10 h-10 rounded border border-gray-300"
+                    :style="{ backgroundColor: selectedCategoryColor }"
+                  ></div>
+                  <span class="text-xs text-gray-500">{{ selectedCategoryName }}</span>
+                </div>
+              </label>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+              <label class="flex flex-col gap-1 text-sm font-medium text-gray-700">
+                Início*
+                <input 
+                  v-model="form.start" 
+                  required 
+                  class="rounded-md border border-gray-300 bg-white px-2.5 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition" 
+                  type="time" 
+                />
+              </label>
+              <label class="flex flex-col gap-1 text-sm font-medium text-gray-700">
+                Fim*
+                <input 
+                  v-model="form.end" 
+                  required 
+                  class="rounded-md border border-gray-300 bg-white px-2.5 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition" 
+                  type="time" 
+                />
+              </label>
+            </div>
+            
+            <!-- Atribuição de usuário -->
+            <div v-if="canAssignUsers">
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                👤 Atribuir para
+              </label>
+              <select
+                v-model="form.assigned_to"
+                class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition"
+              >
+                <option value="">Não atribuir (livre)</option>
+                <option
+                  v-for="user in users"
+                  :key="user.id"
+                  :value="user.id"
+                >
+                  {{ user.name }} ({{ getRoleLabel(user.role) }})
+                </option>
+              </select>
+            </div>
+            
+            <div class="grid grid-cols-1 gap-4">
+              <label class="flex flex-col gap-1 text-sm font-medium text-gray-700">
+                📍 Link do Google Maps
+                <input 
+                  v-model="form.googleMapsLink" 
+                  class="rounded-md border border-gray-300 bg-white px-2.5 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition" 
+                  type="url" 
+                  placeholder="https://maps.google.com/..." 
+                />
+                <span class="text-xs text-gray-500">Será enviado no Telegram para localização</span>
+              </label>
+            </div>
+
+            <!-- Status da tarefa (somente para edição) -->
+            <div v-if="isEdit" class="grid grid-cols-1 gap-4">
+              <div class="bg-gray-50 rounded-md p-3 border">
+                <label class="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+                  ✅ Status da Tarefa
+                </label>
+                <label class="flex items-center gap-2 text-sm">
+                  <input 
+                    v-model="form.is_completed" 
+                    type="checkbox" 
+                    class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" 
+                  />
+                  <span>Marcar como finalizada</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Reagendamento (somente visualização) -->
+            <div v-if="isEdit && form.rescheduled_reason" class="bg-orange-50 rounded-md p-3 border border-orange-200">
+              <label class="block text-sm font-medium text-orange-800 mb-1">
+                🔄 Histórico de Reagendamento
+              </label>
+              <p class="text-sm text-orange-700">{{ form.rescheduled_reason }}</p>
+              <span class="text-xs text-orange-600">Use /reagendar no Telegram para reagendar novamente</span>
+            </div>
+            
+            <div class="pt-2 flex justify-end gap-2">
+              <button 
+                type="button" 
+                class="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white text-gray-700 text-sm font-medium px-3 py-2 shadow-sm hover:bg-gray-50 active:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300/40" 
+                @click="close"
+              >
+                Cancelar
+              </button>
+              <button 
+                type="submit" 
+                :disabled="isLoading" 
+                class="inline-flex items-center gap-1 rounded-md bg-indigo-600 text-white text-sm font-medium px-3 py-2 shadow hover:bg-indigo-500 active:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-400 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <span v-if="isLoading">Salvando...</span>
+                <span v-else>{{ isEdit ? 'Salvar' : 'Criar' }}</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </transition>
+  </Teleport>
+</template>
+
+<script setup lang="ts">
+import { reactive, watch, computed, ref } from 'vue'
+
+const props = defineProps<{ 
+  modelValue: boolean
+  editItem?: any
+  defaultDate?: string
+  categories: any[]
+  users: any[]
+  currentUser?: any
+}>()
+
+const emit = defineEmits<{
+  'update:modelValue': [value: boolean]
+  save: [item: any]
+}>()
+
+const open = computed(() => props.modelValue)
+const isEdit = computed(() => !!props.editItem)
+const isLoading = ref(false)
+
+const canAssignUsers = computed(() => 
+  props.currentUser?.role === 'admin' || props.currentUser?.role === 'instructor'
+)
+
+const emptyDate = () => (props.defaultDate || new Date().toISOString().split('T')[0]) as string
+
+const form = reactive<any>({
+  id: undefined,
+  code: undefined,
+  title: '',
+  description: '',
+  date: emptyDate(),
+  start: '08:00',
+  end: '09:00',
+  category_id: '',
+  assigned_to: '',
+  googleMapsLink: '',
+  rescheduled_reason: undefined,
+  is_completed: false
+})
+
+const selectedCategoryColor = computed(() => {
+  const category = props.categories.find(c => c.id === form.category_id)
+  return category?.color || '#6366F1'
+})
+
+const selectedCategoryName = computed(() => {
+  const category = props.categories.find(c => c.id === form.category_id)
+  return category?.name || 'Cor da categoria'
+})
+
+watch(() => props.editItem, (val) => {
+  if (val) {
+    Object.assign(form, {
+      ...val,
+      googleMapsLink: val.googleMapsLink || '',
+      rescheduled_reason: val.rescheduled_reason || undefined,
+      is_completed: Boolean(val.is_completed) || false,
+      category_id: val.category_id || '',
+      assigned_to: val.assigned_to || ''
+    })
+  } else {
+    Object.assign(form, {
+      id: undefined,
+      code: undefined,
+      title: '',
+      description: '',
+      date: emptyDate(),
+      start: '08:00',
+      end: '09:00',
+      category_id: '',
+      assigned_to: '',
+      googleMapsLink: '',
+      rescheduled_reason: undefined,
+      is_completed: false
+    })
+  }
+}, { immediate: true })
+
+function close() {
+  emit('update:modelValue', false)
+}
+
+function getRoleLabel(role: string) {
+  const labels: Record<string, string> = {
+    admin: 'Admin',
+    instructor: 'Instrutor',
+    staff: 'Funcionário'
+  }
+  return labels[role] || role
+}
+
+async function handleSubmit() {
+  if (form.end <= form.start) {
+    alert('Horário final deve ser após o inicial')
+    return
+  }
+  
+  if (!form.category_id) {
+    alert('Por favor, selecione uma categoria')
+    return
+  }
+  
+  // Validar URL do Google Maps se fornecida
+  if (form.googleMapsLink && !isValidGoogleMapsUrl(form.googleMapsLink)) {
+    alert('Por favor, insira um link válido do Google Maps')
+    return
+  }
+  
+  isLoading.value = true
+  
+  try {
+    // Adicionar cor da categoria selecionada
+    const selectedCategory = props.categories.find(c => c.id === form.category_id)
+    emit('save', { 
+      ...form, 
+      color: selectedCategory?.color || '#6366F1'
+    })
+    close()
+  } catch (e: any) {
+    alert(e?.message || 'Erro ao salvar')
+  } finally {
+    isLoading.value = false
+  }
+}
+
+function isValidGoogleMapsUrl(url: string): boolean {
+  if (!url) return true // URL vazia é válida
+  try {
+    const urlObj = new URL(url)
+    return urlObj.hostname.includes('google.com') || urlObj.hostname.includes('maps.app.goo.gl')
+  } catch {
+    return false
+  }
+}
+</script>
+
+<style scoped>
+.fade-enter-active,.fade-leave-active { transition: opacity .15s ease; }
+.fade-enter-from,.fade-leave-to { opacity: 0; }
+</style>

@@ -82,7 +82,6 @@ module.exports = {
     require('@tailwindcss/forms')({
       strategy: 'class'
     }),
-    require('@tailwindcss/typography'),
     // Plugin customizado para utilitários específicos do projeto
     function({ addUtilities, theme, addComponents }) {
       const newUtilities = {

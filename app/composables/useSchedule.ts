@@ -331,31 +331,7 @@ export function useSchedule() {
   }
 }
 
-// Utility functions
-export function formatTime(time: string): string {
-  return time.substring(0, 5) // Remove seconds if present
-}
-
-export function formatDate(dateStr: string): string {
-  const date = new Date(dateStr + 'T12:00:00')
-  return date.toLocaleDateString('pt-BR', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
-}
-
-export function formatDateTime(dateStr: string, timeStr: string): string {
-  const date = new Date(`${dateStr}T${timeStr}:00`)
-  return date.toLocaleString('pt-BR', {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
-}
+// Utility functions (moved to utils/helpers.ts - using imports instead)
 
 export function isTaskOverdue(item: ScheduleItem): boolean {
   const now = new Date()
