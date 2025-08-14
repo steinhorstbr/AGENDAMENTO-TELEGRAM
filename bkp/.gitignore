@@ -1,0 +1,74 @@
+# Nuxt dev/build outputs
+.output
+.data
+.nuxt
+.nitro
+.cache
+dist
+
+# Node dependencies
+node_modules
+
+# Logs
+logs
+*.log
+
+# Misc
+.DS_Store
+.fleet
+.idea
+
+# Local env files
+.env
+.env.*
+!.env.example
+
+# Database files
+data/
+*.db
+*.db-wal
+*.db-shm
+
+# Backup files
+backups/
+*.backup
+
+# Docker volumes
+docker-data/
+
+# VSCode settings
+.vscode/
+*.code-workspace
+
+# Coverage reports
+coverage/
+
+# Temporary files
+tmp/
+temp/
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+
+# Package manager files
+yarn.lock
+pnpm-lock.yaml
+
+# TypeScript compiled files
+*.tsbuildinfo
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Testing
+.nyc_output
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache

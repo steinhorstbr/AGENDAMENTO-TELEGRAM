@@ -1,37 +1,33 @@
-// nuxt.config.ts
+// https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
-  devtools: { enabled: process.env.NODE_ENV === 'development' },
-  
-  modules: [
-    '@nuxtjs/tailwindcss'
-  ],
+  devtools: { enabled: false },
+  modules: ['@nuxtjs/tailwindcss'],
   
   runtimeConfig: {
+    // Variáveis do servidor (privadas)
     telegramBotToken: process.env.TELEGRAM_BOT_TOKEN || "6307490274:AAGx5q-tQAP-HeAUGbAOo4XVJSlbtLCkpEA",
     telegramChatId: process.env.TELEGRAM_CHAT_ID || "-4505537919",
-    jwtSecret: process.env.JWT_SECRET || "sua-chave-secreta-muito-forte-aqui-mude-em-producao",
     
+    // Variáveis públicas (se necessário)
     public: {
-      appName: 'Agenda BJJ',
-      appVersion: '2.0.0',
-      appDescription: 'Sistema de Agendamento com Telegram Bot',
-      supportedFormats: ['jpeg', 'png', 'gif', 'webp'],
-      maxFileSize: 5242880,
-      maxPhotosPerTask: 10
+      appName: 'Agenda BJJ'
     }
   },
   
+  // Configurações para produção
   nitro: {
     experimental: {
       wasm: true
     }
   },
   
+  // CSS customizado
   css: [
     '~/assets/css/main.css'
   ],
   
+  // Configurações da aplicação
   app: {
     head: {
       title: 'Agenda BJJ - Sistema de Agendamento',
